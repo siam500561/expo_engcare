@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "EngCare",
+    "name": "Engcare",
     "slug": "EngCare",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,9 +17,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.siam500561.EngCare"
     },
     "web": {
       "bundler": "metro",
@@ -35,6 +36,12 @@
         "projectId": "7aa99bc8-edb1-4cfe-af12-ec2102f36acf"
       }
     },
-    "owner": "siam500561"
+    "owner": "siam500561",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7aa99bc8-edb1-4cfe-af12-ec2102f36acf"
+    }
   }
 }
