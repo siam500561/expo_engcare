@@ -5,7 +5,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { useQuery } from "convex/react";
 import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -18,8 +17,6 @@ import {
   View,
 } from "react-native";
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
-
 const StudentItem = ({
   student,
   index,
@@ -27,9 +24,7 @@ const StudentItem = ({
   student: Doc<"students">;
   index: number;
 }) => {
-  const bgColor = student.name.includes("🎀")
-    ? ["#FFB6C1", "#FFC0CB"]
-    : ["#333333", "#1e1e1e"];
+  const bgColor = student.name.includes("🎀") ? "#FFB6C1" : "#1e1e1e";
   const initials = student.name.includes("🎀")
     ? "🎀"
     : student.name.charAt(0).toUpperCase();
@@ -65,14 +60,9 @@ const StudentItem = ({
     <Animated.View
       style={[styles.itemContainer, { opacity, transform: [{ translateY }] }]}
     >
-      <AnimatedLinearGradient
-        colors={bgColor}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.initialsCircle}
-      >
+      <View style={[styles.initialsCircle, { backgroundColor: bgColor }]}>
         <Text style={styles.initials}>{initials}</Text>
-      </AnimatedLinearGradient>
+      </View>
       <View style={styles.infoContainer}>
         <Text style={styles.name}>{student.name}</Text>
         <Text style={styles.number}>{student.number}</Text>
