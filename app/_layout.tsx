@@ -28,21 +28,7 @@ export default function RootLayout() {
   return (
     <ConvexProvider client={convex}>
       <Stack>
-        <Stack.Screen
-          name="index"
-          options={{
-            headerTitle: "Find Contacts",
-            headerTitleStyle: {
-              fontFamily: "Outfit_400Regular",
-              color: "#1f1f1f",
-              fontSize: 18,
-            },
-            headerTitleAlign: "center",
-            contentStyle: {
-              backgroundColor: "rgba(0, 0, 0, 0)",
-            },
-          }}
-        />
+        <Stack.Screen name="index" />
       </Stack>
     </ConvexProvider>
   );
