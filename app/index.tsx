@@ -102,6 +102,7 @@ export default function Index() {
         data={displayStudents}
         renderItem={({ item, index }) => <StudentItem student={item} />}
         keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
