@@ -1,13 +1,15 @@
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
-import Feather from "@expo/vector-icons/Feather";
+import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { useQuery } from "convex/react";
 import * as Haptics from "expo-haptics";
-import { useEffect, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
   Linking,
   StyleSheet,
@@ -16,22 +18,61 @@ import {
   View,
 } from "react-native";
 
-const StudentItem = ({ student }: { student: Doc<"students"> }) => {
-  const bgColor = student.name.includes("🎀") ? "pink" : "#1e1e1e";
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
+const StudentItem = ({
+  student,
+  index,
+}: {
+  student: Doc<"students">;
+  index: number;
+}) => {
+  const bgColor = student.name.includes("🎀")
+    ? ["#FFB6C1", "#FFC0CB"]
+    : ["#333333", "#1e1e1e"];
   const initials = student.name.includes("🎀")
     ? "🎀"
     : student.name.charAt(0).toUpperCase();
+
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: 1,
+      duration: 500,
+      delay: index * 100,
+      useNativeDriver: true,
+      easing: Easing.bezier(0.2, 0.1, 0.2, 1),
+    }).start();
+  }, []);
 
   const makeCall = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Linking.openURL(`tel:${student.number}`);
   };
 
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const translateY = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [50, 0],
+  });
+
   return (
-    <View style={styles.itemContainer}>
-      <View style={[styles.initialsCircle, { backgroundColor: bgColor }]}>
+    <Animated.View
+      style={[styles.itemContainer, { opacity, transform: [{ translateY }] }]}
+    >
+      <AnimatedLinearGradient
+        colors={bgColor}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.initialsCircle}
+      >
         <Text style={styles.initials}>{initials}</Text>
-      </View>
+      </AnimatedLinearGradient>
       <View style={styles.infoContainer}>
         <Text style={styles.name}>{student.name}</Text>
         <Text style={styles.number}>{student.number}</Text>
@@ -39,6 +80,34 @@ const StudentItem = ({ student }: { student: Doc<"students"> }) => {
       <TouchableOpacity onPress={makeCall}>
         <Feather name="phone-call" size={18} color="#1e1e1e" />
       </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const LoadingAnimation = () => {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <View style={styles.loadingContainer}>
+      <Animated.View style={{ transform: [{ rotate: spin }] }}>
+        <Feather name="loader" size={40} color="#0000ff" />
+      </Animated.View>
     </View>
   );
 };
@@ -46,6 +115,7 @@ const StudentItem = ({ student }: { student: Doc<"students"> }) => {
 export default function Index() {
   const [localStudents, setLocalStudents] = useState<Doc<"students">[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const onlineStudents = useQuery(api.students.get);
 
   const fetchAndStoreStudents = async () => {
@@ -56,6 +126,7 @@ export default function Index() {
       );
       setLocalStudents(onlineStudents);
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -84,25 +155,31 @@ export default function Index() {
     return () => unsubscribe();
   }, [onlineStudents]);
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchAndStoreStudents();
+  };
+
   const displayStudents = (onlineStudents || localStudents).sort((a, b) =>
     a.name.localeCompare(b.name)
   );
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <LoadingAnimation />;
   }
 
   return (
     <View style={styles.container}>
       <FlatList
         data={displayStudents}
-        renderItem={({ item, index }) => <StudentItem student={item} />}
+        renderItem={({ item, index }) => (
+          <StudentItem student={item} index={index} />
+        )}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContainer}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       />
     </View>
   );
@@ -111,6 +188,9 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  listContainer: {
+    paddingVertical: 10,
   },
   loadingContainer: {
     flex: 1,
