@@ -68,7 +68,7 @@ const StudentItem = ({
         <Text style={styles.number}>{student.number}</Text>
       </View>
       <TouchableOpacity onPress={makeCall}>
-        <Feather name="phone-call" size={18} color="#1e1e1e" />
+        <Feather name="phone-call" size={20} color="#1e1e1e" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -96,7 +96,7 @@ const LoadingAnimation = () => {
   return (
     <View style={styles.loadingContainer}>
       <Animated.View style={{ transform: [{ rotate: spin }] }}>
-        <Feather name="loader" size={24} color="#1e1e1e" />
+        <Feather name="loader" size={40} color="#0000ff" />
       </Animated.View>
     </View>
   );

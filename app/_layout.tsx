@@ -1,9 +1,4 @@
-import {
-  Outfit_400Regular,
-  Outfit_500Medium,
-  Outfit_700Bold,
-  useFonts,
-} from "@expo-google-fonts/outfit";
+import { Outfit_400Regular, useFonts } from "@expo-google-fonts/outfit";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -18,8 +13,6 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 export default function RootLayout() {
   let [loaded] = useFonts({
     Outfit_400Regular,
-    Outfit_500Medium,
-    Outfit_700Bold,
   });
 
   useEffect(() => {
@@ -41,11 +34,12 @@ export default function RootLayout() {
             headerTitle: "Find Contacts",
             headerTitleStyle: {
               fontFamily: "Outfit_400Regular",
-              color: "#121212",
+              color: "#1f1f1f",
+              fontSize: 18,
             },
             headerTitleAlign: "center",
             contentStyle: {
-              backgroundColor: "rgba(0, 0, 0, 0.01)",
+              backgroundColor: "rgba(0, 0, 0, 0)",
             },
           }}
         />
