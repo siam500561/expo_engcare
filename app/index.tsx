@@ -96,7 +96,7 @@ const LoadingAnimation = () => {
   return (
     <View style={styles.loadingContainer}>
       <Animated.View style={{ transform: [{ rotate: spin }] }}>
-        <Feather name="loader" size={40} color="#0000ff" />
+        <Feather name="loader" size={24} color="#1e1e1e" />
       </Animated.View>
     </View>
   );
