@@ -167,7 +167,6 @@ export default function Index() {
         )}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
@@ -178,9 +177,6 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  listContainer: {
-    paddingVertical: 10,
   },
   loadingContainer: {
     flex: 1,
