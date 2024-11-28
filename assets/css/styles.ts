@@ -123,6 +123,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  listContentContainer: {
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
   scrollContainer: {
     flex: 1,
   },
