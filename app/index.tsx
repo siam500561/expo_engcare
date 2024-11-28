@@ -1,152 +1,107 @@
 import { styles } from "@/assets/css/styles";
-import AddContactModal from "@/components/add-contact-modal";
-import { LoadingAnimation } from "@/components/loading-animation";
 import { StudentItem } from "@/components/student-item";
 import { api } from "@/convex/_generated/api";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 import { Feather } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import NetInfo from "@react-native-community/netinfo";
 import { useMutation, useQuery } from "convex/react";
-import { Stack } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { FlatList, TouchableOpacity, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  Animated,
+  Keyboard,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Index() {
-  const [localStudents, setLocalStudents] = useState<Doc<"students">[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const onlineStudents = useQuery(api.students.get);
+  const students = useQuery(api.students.get);
   const addStudent = useMutation(api.students.set);
+  const [isAdding, setIsAdding] = useState(false);
+  const [name, setName] = useState("");
+  const [number, setNumber] = useState("");
 
-  const fetchAndStoreStudents = async () => {
-    if (onlineStudents) {
-      await AsyncStorage.setItem(
-        "cachedStudents",
-        JSON.stringify(onlineStudents)
-      );
-      setLocalStudents(onlineStudents);
-      setIsLoading(false);
-      setRefreshing(false);
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+
+  const toggleAddContact = () => {
+    setIsAdding(!isAdding);
+    Animated.spring(slideAnim, {
+      toValue: isAdding ? -200 : 0,
+      tension: 65,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleSave = async () => {
+    if (name && number) {
+      await addStudent({ name, number });
+      setName("");
+      setNumber("");
+      toggleAddContact();
+      Keyboard.dismiss();
     }
   };
-
-  const loadLocalStudents = async () => {
-    try {
-      const cachedStudents = await AsyncStorage.getItem("cachedStudents");
-      if (cachedStudents) {
-        setLocalStudents(JSON.parse(cachedStudents));
-      }
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error loading cached students:", error);
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadLocalStudents();
-
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      if (state.isConnected) {
-        fetchAndStoreStudents();
-        syncLocalStudents();
-      }
-    });
-
-    return () => unsubscribe();
-  }, [onlineStudents]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchAndStoreStudents();
-  };
-
-  const handleAddContact = async (newContact: Omit<Doc<"students">, "_id">) => {
-    const isConnected = await NetInfo.fetch().then(
-      (state) => state.isConnected
-    );
-
-    if (isConnected) {
-      // Save to database
-      await addStudent(newContact);
-    } else {
-      // Save to local storage
-      const newContactWithId = {
-        ...newContact,
-        _id: Date.now().toString() as Id<"students">,
-        class: newContact.class,
-      };
-
-      const updatedStudents = [...localStudents, newContactWithId].sort(
-        (a, b) => a.name.localeCompare(b.name)
-      );
-
-      setLocalStudents(updatedStudents);
-      await AsyncStorage.setItem(
-        "cachedStudents",
-        JSON.stringify(updatedStudents)
-      );
-    }
-  };
-
-  const syncLocalStudents = async () => {
-    const cachedStudents = await AsyncStorage.getItem("cachedStudents");
-    if (cachedStudents) {
-      const parsedStudents = JSON.parse(cachedStudents);
-      // TODO: Implement the logic to sync local students with the database
-      // This might involve comparing local and online students, and adding any new local students to the database
-    }
-  };
-
-  const displayStudents = (onlineStudents || localStudents).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
-
-  if (isLoading) {
-    return <LoadingAnimation />;
-  }
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerTitle: "Find Contacts",
-          headerTitleStyle: {
-            fontFamily: "Outfit_400Regular",
-            color: "#1f1f1f",
-            fontSize: 18,
-          },
-          contentStyle: {
-            backgroundColor: "rgba(0, 0, 0, 0)",
-          },
-          headerRight: () => (
-            <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-              <Feather name="plus" size={24} color="#1f1f1f" />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
-      <View style={styles.container}>
-        <FlatList
-          data={displayStudents}
-          renderItem={({ item, index }) => (
-            <StudentItem student={item} index={index} />
-          )}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Contacts</Text>
+        <TouchableOpacity style={styles.addButton} onPress={toggleAddContact}>
+          <Feather name={isAdding ? "x" : "plus"} size={24} color="#7D7AFF" />
+        </TouchableOpacity>
       </View>
 
-      <AddContactModal
-        isVisible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onSave={handleAddContact}
-      />
-    </>
+      <ScrollView style={styles.scrollContainer} bounces={false}>
+        {/* <Animated.View
+          style={[
+            styles.addContactForm,
+            {
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <TextInput
+            style={styles.addInput}
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+            placeholderTextColor="#8E8E93"
+          />
+          <TextInput
+            style={styles.addInput}
+            placeholder="Phone Number"
+            value={number}
+            onChangeText={setNumber}
+            keyboardType="phone-pad"
+            placeholderTextColor="#8E8E93"
+          />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={toggleAddContact}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.newSaveButton,
+                { opacity: name && number ? 1 : 0.5 },
+              ]}
+              onPress={handleSave}
+              disabled={!name || !number}
+            >
+              <Text style={styles.newSaveButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View> */}
+
+        <View style={styles.listContainer}>
+          {students?.map((student: Doc<"students">, index: number) => (
+            <StudentItem key={student._id} student={student} index={index} />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }

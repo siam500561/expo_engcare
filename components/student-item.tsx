@@ -3,14 +3,7 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
-import {
-  Animated,
-  Easing,
-  Linking,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, Linking, Text, TouchableOpacity, View } from "react-native";
 
 export const StudentItem = ({
   student,
@@ -19,52 +12,70 @@ export const StudentItem = ({
   student: Doc<"students">;
   index: number;
 }) => {
-  const bgColor = student.name.includes("🎀") ? "#FFB6C1" : "#1e1e1e";
-  const initials = student.name.includes("🎀")
-    ? "🎀"
-    : student.name.charAt(0).toUpperCase();
+  const getInitialsColor = () => {
+    const colors = ["#7D7AFF", "#FF9500", "#64D2FF", "#FF2D55", "#5856D6"];
+    return colors[index % colors.length];
+  };
+
+  const makeCall = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const phoneNumber = student.number.replace(/\D/g, "");
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
 
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(animatedValue, {
+    Animated.spring(animatedValue, {
       toValue: 1,
-      duration: 500,
-      delay: index * 100,
+      tension: 50,
+      friction: 7,
       useNativeDriver: true,
-      easing: Easing.bezier(0.2, 0.1, 0.2, 1),
     }).start();
   }, []);
 
-  const makeCall = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Linking.openURL(`tel:${student.number}`);
-  };
+  const scale = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.8, 1],
+  });
 
   const opacity = animatedValue.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 1],
   });
 
-  const translateY = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [50, 0],
-  });
-
   return (
     <Animated.View
-      style={[styles.itemContainer, { opacity, transform: [{ translateY }] }]}
+      style={[styles.itemContainer, { opacity, transform: [{ scale }] }]}
     >
-      <View style={[styles.initialsCircle, { backgroundColor: bgColor }]}>
-        <Text style={styles.initials}>{initials}</Text>
+      <View style={styles.card}>
+        <View style={styles.contentContainer}>
+          <View style={styles.leftContent}>
+            <View
+              style={[
+                styles.initialsContainer,
+                { backgroundColor: getInitialsColor() },
+              ]}
+            >
+              <Text style={styles.initials}>
+                {student.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.name}>{student.name}</Text>
+              <Text style={styles.number}>{student.number}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.callButton}
+            onPress={makeCall}
+            activeOpacity={0.7}
+          >
+            <Feather name="phone" size={18} color="#8E8E93" />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.name}>{student.name}</Text>
-        <Text style={styles.number}>{student.number}</Text>
-      </View>
-      <TouchableOpacity onPress={makeCall}>
-        <Feather name="phone-call" size={20} color="#1e1e1e" />
-      </TouchableOpacity>
     </Animated.View>
   );
 };
