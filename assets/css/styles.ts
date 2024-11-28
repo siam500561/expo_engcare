@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     marginLeft: 8,
   },
   header: {
-    paddingTop: 60,
+    paddingTop: 50,
     paddingHorizontal: 16,
     paddingBottom: 16,
     backgroundColor: "#fff",
@@ -90,17 +90,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   addContactForm: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.05)",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    padding: 15,
+    paddingHorizontal: 20,
+    backgroundColor: "#fff",
+    borderTopColor: "rgba(0,0,0,0.05)",
   },
   addInput: {
     height: 44,
